@@ -1,10 +1,3 @@
-/*!
- * particles-1.js — webfine.ch
- * Loads Three.js automatically, then renders particle animation.
- *
- * Usage in Webflow:
- *   <div data-particles style="position:relative;width:100%;height:600px;"></div>
- */
 (function () {
   function run() {
 
