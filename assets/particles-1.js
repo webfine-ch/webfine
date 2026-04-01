@@ -225,14 +225,22 @@
     });
   }
 
-  // ── Load Three.js then run ────────────────────────────────────────────────
+// ── Load Three.js then run ────────────────────────────────────────────────
+  function waitForDiv() {
+    if (document.querySelector('[data-particles]')) {
+      run();
+    } else {
+      setTimeout(waitForDiv, 100);
+    }
+  }
+
   function loadAndRun() {
     if (window.THREE) {
-      run();
+      waitForDiv();
     } else {
       var s = document.createElement('script');
       s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-      s.onload = run;
+      s.onload = waitForDiv;
       document.head.appendChild(s);
     }
   }
