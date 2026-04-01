@@ -234,3 +234,10 @@ function loadAndRun() {
   } else {
     loadAndRun();
   }
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadAndRun);
+  } else {
+    loadAndRun();
+  }
+
+})();
