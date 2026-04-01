@@ -41,14 +41,12 @@
     }
 
     // ── Shape SDF ────────────────────────────────────────────────────────────
-    // Rounded rectangle — flat top & bottom, round corners
     function shapeSDF(x, y, r, hl) {
       var px = Math.max(Math.abs(x) - r, 0);
       var py = Math.max(Math.abs(y) - hl, 0);
       return Math.sqrt(px * px + py * py) / (r * 0.3);
     }
 
-    // Hard clip: reject points outside flat top/bottom boundary
     function clipped(wx, wy, r, hl) {
       return Math.abs(wy) > hl;
     }
@@ -75,11 +73,11 @@
 
     // ── Parameters ───────────────────────────────────────────────────────────
     var N   = 3600;
-    var rad = 0.85, hl  = 2.65;  // shape: radius, half-length
-    var wA  = 0.83, wS  = 0.36;  // warp: amount, scale
-    var fd  = 0.00;               // edge fade
-    var pF  = 0.60, pA  = 1.00, pB = 0.05;  // opacity patches
-    var eD  = 0.00;               // edge dimming
+    var rad = 0.85, hl  = 2.65;
+    var wA  = 0.83, wS  = 0.36;
+    var fd  = 0.00;
+    var pF  = 0.60, pA  = 1.00, pB = 0.05;
+    var eD  = 0.00;
 
     // ── Build particles ───────────────────────────────────────────────────────
     var pos = new Float32Array(N * 3);
@@ -225,30 +223,14 @@
     });
   }
 
-// ── Load Three.js then run ────────────────────────────────────────────────
-  function waitForDiv() {
-    if (document.querySelector('[data-particles]')) {
-      run();
-    } else {
-      setTimeout(waitForDiv, 100);
-    }
-  }
-
-  function loadAndRun() {
-    if (window.THREE) {
-      waitForDiv();
-    } else {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-      s.onload = waitForDiv;
-      document.head.appendChild(s);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAndRun);
+  // ── Load Three.js then run ────────────────────────────────────────────────
+  if (window.THREE) {
+    run();
   } else {
-    loadAndRun();
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    s.onload = run;
+    document.head.appendChild(s);
   }
 
 })();
