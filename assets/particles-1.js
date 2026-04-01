@@ -1,3 +1,10 @@
+/*!
+ * particles-1.js — webfine.ch
+ * Loads Three.js automatically, then renders particle animation.
+ *
+ * Usage in Webflow:
+ *   <div data-particles style="position:relative;width:100%;height:600px;"></div>
+ */
 (function () {
   function run() {
 
@@ -67,12 +74,12 @@
     cam.position.z = 5;
 
     // ── Parameters ───────────────────────────────────────────────────────────
-    var N    = 3700;
-    var rad  = 0.85,  hl  = 2.30;  // shape: radius, half-length
-    var wA   = 0.83,  wS  = 0.36;  // warp: amount, scale
-    var fd   = 0.00;                // edge fade
-    var pF   = 0.60,  pA  = 1.00,  pB = 0.05;  // opacity patches
-    var eD   = 0.00;                // edge dimming
+    var N   = 3600;
+    var rad = 0.85, hl  = 2.65;  // shape: radius, half-length
+    var wA  = 0.83, wS  = 0.36;  // warp: amount, scale
+    var fd  = 0.00;               // edge fade
+    var pF  = 0.60, pA  = 1.00, pB = 0.05;  // opacity patches
+    var eD  = 0.00;               // edge dimming
 
     // ── Build particles ───────────────────────────────────────────────────────
     var pos = new Float32Array(N * 3);
@@ -103,8 +110,8 @@
       pos[placed * 3 + 2] = (Math.random() - .5) * .2;
       rn[placed] = Math.random();
       sz[placed] = Math.random() < 0.08
-        ? 4.1 + Math.random() * 1.5
-        : 4.0 + Math.random() * 0.1;
+        ? 3.8 + Math.random() * 1.5
+        : 3.8 + Math.random() * 0.0;
       al[placed] = Math.min(1, Math.max(0, pa * edF * ef));
       placed++;
     }
@@ -125,7 +132,7 @@
         uTime:  { value: 0 },
         uPR:    { value: r.getPixelRatio() },
         uColor: { value: new THREE.Vector3(col.r, col.g, col.b) },
-        uAlpha: { value: 1 },
+        uAlpha: { value: 0.8 },
         uSpeed: { value: 1.8 },
         uDX:    { value: 0.04 },
         uDY:    { value: 0.05 },
@@ -218,7 +225,8 @@
     });
   }
 
-function loadAndRun() {
+  // ── Load Three.js then run ────────────────────────────────────────────────
+  function loadAndRun() {
     if (window.THREE) {
       run();
     } else {
@@ -230,11 +238,6 @@ function loadAndRun() {
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAndRun);
-  } else {
-    loadAndRun();
-  }
-if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadAndRun);
   } else {
     loadAndRun();
