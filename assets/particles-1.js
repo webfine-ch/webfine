@@ -1,12 +1,14 @@
 /*!
  * particles-1.js — webfine.ch
  * Loads Three.js automatically, then renders particle animation.
+ * Supports multiple instances on the same page.
  *
  * Usage in Webflow:
  *   <div data-particles style="position:relative;width:100%;height:600px;"></div>
  */
 (function () {
-  function run() {
+
+  function startInstance(wrap) {
 
     // ── Noise ────────────────────────────────────────────────────────────────
     function mkN(s) {
@@ -53,9 +55,6 @@
 
     // ── Setup ────────────────────────────────────────────────────────────────
     var nA = mkN(42), nB = mkN(93), nP = mkN(137);
-
-    var wrap = document.querySelector('[data-particles]');
-    if (!wrap) return;
 
     var c = document.createElement('canvas');
     c.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
@@ -221,6 +220,15 @@
       cam.updateProjectionMatrix();
       r.setSize(nW, nH);
     });
+  }
+
+  // ── Init all instances ────────────────────────────────────────────────────
+  function run() {
+    var wraps = document.querySelectorAll('[data-particles]');
+    if (!wraps.length) return;
+    for (var i = 0; i < wraps.length; i++) {
+      startInstance(wraps[i]);
+    }
   }
 
   // ── Load Three.js then run ────────────────────────────────────────────────
