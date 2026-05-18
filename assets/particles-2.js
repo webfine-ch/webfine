@@ -1,10 +1,10 @@
 /*!
- * particles-1.js — webfine.ch
+ * particles-2.js — webfine.ch
  * Loads Three.js automatically, then renders particle animation.
- * Supports multiple instances on the same page.
+ * Larger shape, finer dots, less dense.
  *
  * Usage in Webflow:
- *   <div data-particles style="position:relative;width:100%;height:600px;"></div>
+ *   <div data-particles-2 style="position:relative;width:100%;height:600px;"></div>
  */
 (function () {
 
@@ -70,11 +70,11 @@
     cam.position.z = 5;
 
     // ── Parameters ───────────────────────────────────────────────────────────
-    var N   = 3100;
-    var rad = 0.90, hl  = 1.60;
-    var wA  = 1.10, wS  = 0.66;
+    var N   = 1800;   // weniger Punkte → weniger dicht
+    var rad = 1.30,   hl  = 2.40;   // grössere Form
+    var wA  = 1.10,   wS  = 0.66;
     var fd  = 0.00;
-    var pF  = 1.90, pA  = 0.77, pB = 0.57;
+    var pF  = 1.90,   pA  = 0.77,   pB = 0.45;
     var eD  = 0.60;
 
     // ── Build particles ───────────────────────────────────────────────────────
@@ -105,9 +105,10 @@
       pos[placed * 3 + 1] = y;
       pos[placed * 3 + 2] = (Math.random() - .5) * .2;
       rn[placed] = Math.random();
-      sz[placed] = Math.random() < 0.10
-        ? 3.3 + Math.random() * 1.5
-        : 2.2 + Math.random() * 1.1;
+      // feinere Punkte — kleiner als particles-1
+      sz[placed] = Math.random() < 0.08
+        ? 1.8 + Math.random() * 1.0
+        : 0.8 + Math.random() * 0.8;
       al[placed] = Math.min(1, Math.max(0, pa * edF * ef));
       placed++;
     }
