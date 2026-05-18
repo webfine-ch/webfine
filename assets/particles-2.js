@@ -107,7 +107,7 @@
       rn[placed] = Math.random();
       // feinere Punkte — kleiner als particles-1
       sz[placed] = Math.random() < 0.08
-        ? 1.8 + Math.random() * 2.0
+        ? 1.8 + Math.random() * 1.5
         : 0.8 + Math.random() * 0.8;
       al[placed] = Math.min(1, Math.max(0, pa * edF * ef));
       placed++;
