@@ -67,7 +67,7 @@
 
     var scene = new THREE.Scene();
     var cam = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    cam.position.z = 3;
+    cam.position.z = 4;
 
     // ── Parameters ───────────────────────────────────────────────────────────
     var N   = 900;   // weniger Punkte → weniger dicht
