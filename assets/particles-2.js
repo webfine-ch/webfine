@@ -1,20 +1,36 @@
-/*!
- * particles-2.js — webfine.ch
- * Loads Three.js automatically, then renders particle animation.
- * Larger shape, finer dots, less dense.
- *
- * Usage in Webflow:
- *   <div data-particles-2 style="position:relative;width:100%;height:600px;"></div>
- */
 (function () {
 
   function startInstance(wrap) {
 
+    // ── Read data attributes ─────────────────────────────────────────────────
+    function f(k, d) { var v = wrap.getAttribute(k); return v !== null ? parseFloat(v) : d; }
+    function s(k, d) { var v = wrap.getAttribute(k); return v !== null ? v : d; }
+    function n(k, d) { var v = wrap.getAttribute(k); return v !== null ? parseInt(v) : d; }
+
+    var color      = s('data-color',          '#FF7A59');
+    var count      = n('data-count',           900);
+    var rad        = f('data-rad',             1.8);
+    var hl         = f('data-hl',              3.2);
+    var warpAmt    = f('data-warp-amt',        1.1);
+    var warpScale  = f('data-warp-scale',      0.66);
+    var dotMin     = f('data-dot-min',         1.8);
+    var dotMax     = f('data-dot-max',         2.8);
+    var alpha      = f('data-alpha',           1.0);
+    var speed      = f('data-speed',           0.6);
+    var camZ       = f('data-cam-z',           4.0);
+    var mouseMode  = s('data-mouse',           'attract'); // attract | repel | none
+    var mouseR     = f('data-mouse-radius',    1.55);
+    var mouseS     = f('data-mouse-strength',  0.1);
+    var patchFreq  = f('data-patch-freq',      1.9);
+    var patchAmt   = f('data-patch-amt',       0.77);
+    var patchBase  = f('data-patch-base',      0.57);
+    var edgeDim    = f('data-edge-dim',        0.6);
+
     // ── Noise ────────────────────────────────────────────────────────────────
-    function mkN(s) {
+    function mkN(seed) {
       var p = new Uint8Array(512);
       for (var i = 0; i < 256; i++) p[i] = i;
-      var r = s | 0;
+      var r = seed | 0;
       for (var i = 255; i > 0; i--) {
         r = (r * 1664525 + 1013904223) & 0xffffffff;
         var j = (r >>> 0) % (i + 1);
@@ -36,21 +52,19 @@
       };
     }
 
-    function fbm(n, x, y, o, f) {
-      var v = 0, a = 0.5, fr = f;
-      for (var i = 0; i < o; i++) { v += n(x * fr, y * fr) * a; a *= 0.5; fr *= 2.1; }
+    function fbm(noise, x, y, o, freq) {
+      var v = 0, a = 0.5, fr = freq;
+      for (var i = 0; i < o; i++) { v += noise(x * fr, y * fr) * a; a *= 0.5; fr *= 2.1; }
       return v;
     }
 
     // ── Shape SDF — Teardrop ─────────────────────────────────────────────────
-    function shapeSDF(x, y, r, hl) {
-      var cy = y;
-      var base = Math.sqrt(x * x + cy * cy) / r;
-      var taper = y < 0 ? 1 + Math.pow(-y / (hl + r), 1.5) * 0.6 : 1;
+    function shapeSDF(x, y) {
+      var cy = y + hl * 0.5;
+      var base = Math.sqrt(x * x + cy * cy) / rad;
+      var taper = y < 0 ? 1 + Math.pow(-y / (hl + rad), 1.5) * 0.6 : 1;
       return base * taper;
     }
-
-    function clipped() { return false; }
 
     // ── Setup ────────────────────────────────────────────────────────────────
     var nA = mkN(42), nB = mkN(93), nP = mkN(137);
@@ -60,56 +74,45 @@
     wrap.appendChild(c);
 
     var W = wrap.clientWidth, H = wrap.clientHeight;
-    var r = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true });
-    r.setPixelRatio(Math.min(devicePixelRatio, 2));
-    r.setSize(W, H);
-    r.setClearColor(0, 0);
+    var renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0, 0);
 
     var scene = new THREE.Scene();
     var cam = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    cam.position.z = 4;
-
-    // ── Parameters ───────────────────────────────────────────────────────────
-    var N   = 900;   // weniger Punkte → weniger dicht
-    var rad = 1.80, hl  = 3.20;   // grössere Form
-    var wA  = 1.10,   wS  = 0.66;
-    var fd  = 0.00;
-    var pF  = 1.90,   pA  = 0.77,   pB = 0.45;
-    var eD  = 0.60;
+    cam.position.z = camZ;
 
     // ── Build particles ───────────────────────────────────────────────────────
-    var pos = new Float32Array(N * 3);
-    var rn  = new Float32Array(N);
-    var sz  = new Float32Array(N);
-    var al  = new Float32Array(N);
+    var pos = new Float32Array(count * 3);
+    var rn  = new Float32Array(count);
+    var sz  = new Float32Array(count);
+    var al  = new Float32Array(count);
     var placed = 0, att = 0;
-    var sR = (rad + hl + wA + 0.5) * 2.4;
+    var sR = (rad + hl + warpAmt + 0.5) * 2.4;
 
-    while (placed < N && att < N * 40) {
+    while (placed < count && att < count * 40) {
       att++;
       var x = (Math.random() - .5) * sR;
       var y = (Math.random() - .5) * sR;
-      var wx = x + nA(x * wS, y * wS) * wA;
-      var wy = y + nB(x * wS + 5.2, y * wS + 1.3) * wA;
+      var wx = x + nA(x * warpScale, y * warpScale) * warpAmt;
+      var wy = y + nB(x * warpScale + 5.2, y * warpScale + 1.3) * warpAmt;
 
-      if (clipped(wx, wy, rad, hl)) continue;
-      var sdf = shapeSDF(wx, wy, rad, hl);
+      var sdf = shapeSDF(wx, wy);
       if (sdf > 1) continue;
 
-      var ef  = fd > 0 ? Math.min(1, (1 - sdf) / fd) : 1;
-      var pn  = fbm(nP, x * pF, y * pF, 2, 1);
-      var pa  = pB + (pn + .5) * pA;
-      var edF = 1 - eD * sdf;
+      var pn  = fbm(nP, x * patchFreq, y * patchFreq, 2, 1);
+      var pa  = patchBase + (pn + .5) * patchAmt;
+      var edF = 1 - edgeDim * sdf;
 
       pos[placed * 3]     = x;
       pos[placed * 3 + 1] = y;
       pos[placed * 3 + 2] = (Math.random() - .5) * .2;
       rn[placed] = Math.random();
-      // feinere Punkte — kleiner als particles-1
       sz[placed] = Math.random() < 0.08
-        ? 1.8 + Math.random() * 1.5
-        : 0.8 + Math.random() * 0.8;
-      al[placed] = Math.min(1, Math.max(0, pa * edF * ef));
+        ? dotMax + Math.random() * 1.0
+        : dotMin + Math.random() * (dotMax - dotMin);
+      al[placed] = Math.min(1, Math.max(0, pa * edF));
       placed++;
     }
 
@@ -121,16 +124,16 @@
     geo.setAttribute('aAl',      new THREE.BufferAttribute(al.slice(0, placed), 1));
 
     // ── Material ─────────────────────────────────────────────────────────────
-    var col = new THREE.Color('#FF7A59');
+    var col = new THREE.Color(color);
     var mat = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       uniforms: {
         uTime:  { value: 0 },
-        uPR:    { value: r.getPixelRatio() },
+        uPR:    { value: renderer.getPixelRatio() },
         uColor: { value: new THREE.Vector3(col.r, col.g, col.b) },
-        uAlpha: { value: 1 },
-        uSpeed: { value: 0.6 },
+        uAlpha: { value: alpha },
+        uSpeed: { value: speed },
         uDX:    { value: 0.04 },
         uDY:    { value: 0.05 },
         uPulse: { value: 0.12 },
@@ -168,30 +171,33 @@
     var mx = -9999, my = -9999;
     var orig = pos.slice(0, placed * 3);
 
-    wrap.addEventListener('mousemove', function (e) {
-      var rect = wrap.getBoundingClientRect();
-      var nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      var ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      var v = new THREE.Vector3(nx, ny, 0.5).unproject(cam);
-      var d = v.sub(cam.position).normalize();
-      var t = -cam.position.z / d.z;
-      var p = cam.position.clone().add(d.multiplyScalar(t));
-      mx = p.x; my = p.y;
-    });
-    wrap.addEventListener('mouseleave', function () { mx = -9999; my = -9999; });
+    if (mouseMode !== 'none') {
+      wrap.addEventListener('mousemove', function (e) {
+        var rect = wrap.getBoundingClientRect();
+        var nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        var ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        var v = new THREE.Vector3(nx, ny, 0.5).unproject(cam);
+        var d = v.sub(cam.position).normalize();
+        var t = -cam.position.z / d.z;
+        var p = cam.position.clone().add(d.multiplyScalar(t));
+        mx = p.x; my = p.y;
+      });
+      wrap.addEventListener('mouseleave', function () { mx = -9999; my = -9999; });
+    }
 
     function applyMouse() {
+      if (mouseMode === 'none') return;
       var pa = geo.getAttribute('position'), N = pa.count;
-      var R = 1.55, S = 0.1, sign = -1;
+      var sign = mouseMode === 'attract' ? -1 : 1;
       for (var i = 0; i < N; i++) {
         var ox = orig[i * 3], oy = orig[i * 3 + 1], oz = orig[i * 3 + 2];
         var dx = ox - mx, dy = oy - my;
         var d = Math.sqrt(dx * dx + dy * dy);
-        if (d < R && d > 0.001) {
-          var f = (1 - d / R) * S * sign;
+        if (d < mouseR && d > 0.001) {
+          var ff = (1 - d / mouseR) * mouseS * sign;
           pa.setXYZ(i,
-            pa.getX(i) + (ox + (dx / d) * f - pa.getX(i)) * 0.12,
-            pa.getY(i) + (oy + (dy / d) * f - pa.getY(i)) * 0.12,
+            pa.getX(i) + (ox + (dx / d) * ff - pa.getX(i)) * 0.12,
+            pa.getY(i) + (oy + (dy / d) * ff - pa.getY(i)) * 0.12,
             oz
           );
         } else {
@@ -210,7 +216,7 @@
       requestAnimationFrame(anim);
       mat.uniforms.uTime.value = t / 1000;
       applyMouse();
-      r.render(scene, cam);
+      renderer.render(scene, cam);
     })(0);
 
     // ── Resize ────────────────────────────────────────────────────────────────
@@ -218,7 +224,7 @@
       var nW = wrap.clientWidth, nH = wrap.clientHeight;
       cam.aspect = nW / nH;
       cam.updateProjectionMatrix();
-      r.setSize(nW, nH);
+      renderer.setSize(nW, nH);
     });
   }
 
