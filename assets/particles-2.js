@@ -223,7 +223,7 @@
 
   // ── Init all instances ────────────────────────────────────────────────────
   function run() {
-    var wraps = document.querySelectorAll('[data-particles]');
+    var wraps = document.querySelectorAll('[data-particles-2]');
     if (!wraps.length) return;
     for (var i = 0; i < wraps.length; i++) {
       startInstance(wraps[i]);
