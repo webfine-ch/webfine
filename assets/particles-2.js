@@ -70,8 +70,8 @@
     cam.position.z = 5;
 
     // ── Parameters ───────────────────────────────────────────────────────────
-    var N   = 1000;   // weniger Punkte → weniger dicht
-    var rad = 1.30,   hl  = 2.40;   // grössere Form
+    var N   = 900;   // weniger Punkte → weniger dicht
+    var rad = 1.80, hl  = 3.20;   // grössere Form
     var wA  = 1.10,   wS  = 0.66;
     var fd  = 0.00;
     var pF  = 1.90,   pA  = 0.77,   pB = 0.45;
