@@ -44,7 +44,7 @@
 
     // ── Shape SDF — Teardrop ─────────────────────────────────────────────────
     function shapeSDF(x, y, r, hl) {
-      var cy = y + hl * 0.5;
+      var cy = y;
       var base = Math.sqrt(x * x + cy * cy) / r;
       var taper = y < 0 ? 1 + Math.pow(-y / (hl + r), 1.5) * 0.6 : 1;
       return base * taper;
@@ -107,7 +107,7 @@
       rn[placed] = Math.random();
       // feinere Punkte — kleiner als particles-1
       sz[placed] = Math.random() < 0.08
-        ? 1.8 + Math.random() * 1.0
+        ? 1.8 + Math.random() * 2.0
         : 0.8 + Math.random() * 0.8;
       al[placed] = Math.min(1, Math.max(0, pa * edF * ef));
       placed++;
