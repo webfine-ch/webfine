@@ -60,7 +60,7 @@
 
     // ── Shape SDF — Teardrop ─────────────────────────────────────────────────
     function shapeSDF(x, y) {
-      var cy = y + hl * 0.5;
+      var cy = y;
       var base = Math.sqrt(x * x + cy * cy) / rad;
       var taper = y < 0 ? 1 + Math.pow(-y / (hl + rad), 1.5) * 0.6 : 1;
       return base * taper;
